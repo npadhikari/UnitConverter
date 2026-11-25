@@ -1,81 +1,58 @@
-<div align="center">
+# Converter NOW · Nepal Land Edition
 
-# Converter NOW
+A Flutter Android app for Nepali land measurement: a unit converter for
+Ropani-Aana-Paisa-Daam and Bigha-Kattha-Dhur, a **naksa scanner** (OCR plus
+plot-boundary detection), a **map plotter** and **area reports** you can
+export as PDF.
 
-[<img src="https://img.shields.io/github/contributors/ferraridamiano/ConverterNOW?style=flat-square"
-    alt="Contributors"
-    height="30">](https://github.com/ferraridamiano/ConverterNOW/graphs/contributors)
-[<img src="https://img.shields.io/static/v1?style=for-the-badge&message=PWA&color=5A0FC8&logo=PWA&logoColor=FFFFFF&label="
-    alt="Open web app"
-    height="30">](https://converter-now.web.app)
-[<img src="https://img.shields.io/static/v1?style=for-the-badge&message=PayPal&color=00457C&logo=PayPal&logoColor=FFFFFF&label="
-    alt="Donate paypal"
-    height="30">](https://www.paypal.me/DemApps)
+> Rebuilt from [Converter NOW](https://github.com/ferraridamiano/ConverterNOW)
+> by Damiano Ferrari (GPL-3.0). This version is a new codebase focused on land.
 
-<img src="fastlane/metadata/android/en-US/images/phoneScreenshots/1.jpeg" width="140"> <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/2.jpeg" width="140"> <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/3.jpeg" width="140"> <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/4.jpeg" width="140"> <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/5.jpeg" width="140">
-</div>
+## Features
 
-## Why Converter NOW
+| Tab | What it does |
+| --- | --- |
+| **Convert** | Area (sq ft, m², Ropani, Aana, Paisa, Daam, Bigha, Kattha, Dhur, acre, hectare…), length (incl. haat), weight (tola, lal, pau, ser, dharni) and volume (mana, pathi, muri). Enter area as a single unit or directly as R-A-P-D / B-K-D. Accepts Devanagari digits. |
+| **Scan** | Take or pick a photo of a cadastral map (naksa) or Lalpurja. **Google ML Kit OCR** (Latin + Devanagari) reads the scale (1:1250…), kitta, sheet, ward and printed area. Tap inside your plot and the **computer-vision pipeline** traces its boundary from the map lines. |
+| **Plot** | Drag / add / delete corners on the photo or on a metric grid. Set the scale from one known side (real length, or mm on paper × map scale). Or enter **tape measurements** (4 sides + diagonal, or a triangle) and get the area with Heron's formula. |
+| **Saved** | Plots stored on the phone, each with a report: area in every unit, side lengths (ft / m / haat), perimeter, Share and **Export PDF**. |
 
-A few years ago I noticed that most of the unit converters on the digital stores were ugly, not immediately usable, with ads and tracking software. I thought it would be a  good idea to develop Converter NOW in order to solve all these problems!
+### Unit definitions
 
-🚀 It is made to be **easy**, **fast** and **immediately** useable: just start typing and immediately you have the real-time conversion  with all the other units of measurement
+* Hill: 1 Ropani = 16 Aana = 64 Paisa = 256 Daam = 5,476 sq ft (508.74 m²)
+* Terai: 1 Bigha = 20 Kattha = 400 Dhur = 72,900 sq ft (6,772.63 m²)
 
-🖌️ It is **customizable**: the units can be reorganized according to your priorities and your use case
+### Plot detection pipeline (`lib/core/plot_detector.dart`)
 
-🔢 It integrates a **Calculator** that let you do the calculations in every page
+A pure-Dart version of the usual OpenCV steps, run in a background isolate
+so the APK has no native OpenCV library:
 
-💰 Currency conversions are **updated daily**
+1. Fix photo orientation, then resize (≤ 1000 px working copy)
+2. Grayscale → blur → **adaptive mean threshold** (like `cv::adaptiveThreshold`)
+3. **Dilate** to close gaps in the lines
+4. **Flood fill** from the tapped point (like `cv::floodFill`), then a morphological close
+5. **Border following** (like `cv::findContours`)
+6. **Douglas–Peucker** simplification (like `cv::approxPolyDP`) and removal of collinear points
 
-⚫⚪ **Choose your favourite theme**: dark or white theme
+Area = shoelace formula over the corners × (metres per pixel)².
 
-📱🖥️ **Full Smartphone, Tablet and Web app support**
+## Build
 
-💯 It is **free**, **no ads**, **no analytics**, **no permissions** (just Internet to update currency conversions). And first of all it is **open source**!
+```bash
+flutter pub get
+flutter test
+flutter build apk --release          # build/app/outputs/flutter-apk/app-release.apk
+```
 
-## Installation
+Requires Flutter 3.50+ (Dart 3.14) and the Android SDK (API 36). The release
+build is signed with the debug key; add your own keystore in
+`android/app/build.gradle.kts` before publishing to the Play Store.
 
+## Disclaimer
 
-### Android
+Areas worked out from photos and hand measurements are estimates. Check them
+with the Malpot / Napi (survey) office before buying or selling land.
 
-Install the app from the app stores:
+## License
 
-[<img src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png"
-    alt="Get it on Google Play"
-    height="72">](https://play.google.com/store/apps/details?id=com.ferrarid.converterpro)
-[<img src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png"
-    alt="Get it on F-Droid"
-    height="72">](https://f-droid.org/packages/com.ferrarid.converterpro)
-
-Otherwise, if you want to compile the code you first need to [install flutter](https://docs.flutter.dev/get-started/install), then you have to disable the signing option in [`android/app/build.gradle`](https://github.com/ferraridamiano/ConverterNOW/blob/master/android/app/build.gradle#L70) (just comment that line). Then you can type `flutter build apk --split-per-abi` to compile the code. You can find the output in `build/app/outputs/apk/release` folder.
-
-### Linux
-
-Install the app from the app stores:
-
-[<img src="https://flathub.org/assets/badges/flathub-badge-en.png"
-    alt="Download on Flathub"
-    height="55">](https://flathub.org/apps/details/io.github.ferraridamiano.ConverterNOW)
-[<img src="https://snapcraft.io/static/images/badges/en/snap-store-black.svg"
-    alt="Get it from the Snap Store"
-    height="55">](https://snapcraft.io/converternow)
-
-Otherwise, if you want to compile the code, you first need to [install flutter](https://docs.flutter.dev/get-started/install), then type `flutter build linux`. You can find the output in `build/linux/x64/release/bundle`.
-
-### Windows
-
-Install the app from the app store:
-
-[<img src="https://getbadgecdn.azureedge.net/images/English_L.png"
-    alt="Get it from the Microsoft Store"
-    height="60">](https://www.microsoft.com/store/apps/9P0Q79HWJH72)
-
-Otherwise, if you want to compile the code, you first need to [install flutter](https://docs.flutter.dev/get-started/install), then type `flutter build windows`. You can find the output in `build/windows/runner/Release`.
-
-### Web
-You can reach the PWA [here](https://converter-now.web.app).
-
-Otherwise, if you want to compile the code, you first need to [install flutter](https://docs.flutter.dev/get-started/install), then type `flutter build web`. You can find the output in `build/web`.
-
-### iOS and MacOS
-The app is not tested against iOS and MacOS, but you should be able to compile it even for these platforms. You first need to [install flutter](https://docs.flutter.dev/get-started/install), then generate the platform specific code and then compile them.
+GPL-3.0, see [LICENSE](LICENSE).
